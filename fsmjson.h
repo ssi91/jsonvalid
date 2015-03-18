@@ -18,7 +18,8 @@ private:
 	static const char MARK_OPEN_Q_VALUE = 3;
 	static const char MARK_CLOSE_Q_VALUE = 4;
 	static const char MARK_MULT = 5;
-	int16_t **FSMMatrix() const;
+	char **FSMMatrix() const;
+
 public:
 	FSMJson();
 	FSMJson(const char *_s);

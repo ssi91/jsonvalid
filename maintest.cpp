@@ -4,6 +4,6 @@
 
 #include "fsmjson.h"
 int main (){
-	FSMJson fsmJson("test");
+	FSMJson fsmJson("{\"@:#\"}[],.\"\"");
 	return 0;
 }
