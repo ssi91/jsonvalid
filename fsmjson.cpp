@@ -64,6 +64,8 @@ char **FSMJson::FSMMatrix() const
 	fsm[2][5] = 1;
 	fsm[2][10] = 1;
 	fsm[2][12] = 1;
+	fsm[3][0] = 1;
+	fsm[3][4] = 1;
 	fsm[3][7] = 1;
 	fsm[3][11] = 1;
 	fsm[4][2] = 1;
@@ -79,6 +81,7 @@ char **FSMJson::FSMMatrix() const
 	fsm[7][0] = 1;
 	fsm[7][11] = 1;
 	fsm[8][6] = 1;
+	fsm[9][0] = 1;
 	fsm[9][11] = 1;
 	fsm[10][2] = 1;
 	fsm[10][4] = 1;
@@ -208,6 +211,8 @@ bool FSMJson::isValidJson(const char *_s1) const
 		}
 		i++;
 	}
+	if (fsm[cur_state][size] != -1)
+		return false;
 	for (int i = 0; i < n - 1; ++i)
 	{
 		delete[] fsm[i];
