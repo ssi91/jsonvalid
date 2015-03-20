@@ -12,15 +12,16 @@ class FSMJson
 private:
 	char *s;
 	size_t n;
+	char **FSMMatrix() const;
+
 	static const char MARK_DEF = 0;
 	static const char MARK_OPEN_Q_KEY = 1;
 	static const char MARK_CLOSE_Q_KEY = 2;
 	static const char MARK_OPEN_Q_VALUE = 3;
 	static const char MARK_CLOSE_Q_VALUE = 4;
 	static const char MARK_MULT = 5;
-	char **FSMMatrix() const;
-
 public:
+
 	FSMJson();
 	FSMJson(const char *_s);
 	FSMJson(FSMJson &_fsm);

@@ -1,6 +1,13 @@
 #include <iostream>
 #include "fsmjson.h"
 
+//const char FSMJson::MARK_DEF = 0;
+//static const char MARK_OPEN_Q_KEY = 1;
+//static const char MARK_CLOSE_Q_KEY = 2;
+//static const char MARK_OPEN_Q_VALUE = 3;
+//static const char MARK_CLOSE_Q_VALUE = 4;
+//static const char MARK_MULT = 5;
+
 FSMJson::FSMJson(const char *_s)
 {
 	n = 0;
@@ -95,56 +102,109 @@ char **FSMJson::FSMMatrix() const
 	return fsm;
 }
 
-bool FSMJson::isValidJson(const char *_s) const
+bool FSMJson::isValidJson(const char *_s1) const
 {
+	char _s[] = "{\"key\":\"value\"}";
+	std::cout << _s << std::endl;
+
 	char **fsm = FSMMatrix();
 	size_t size = n - 1;
 	size_t i = 0;
 	char mark[13] = {0, 1, 5, 0, 5, 2, 0, 0, 0, 0, 0, 3, 4};
-	size_t cur_state, next_state;
+	size_t cur_state = 0;
+	size_t next_state;
 	bool isKey = true; // if false - value
 	bool qOpened = false; //if opened - true
-
+	bool startState = true;
 	while (_s[i] != '\0')
 	{
-		if (!i)
+//		if (!i)
+//		{
+//			cur_state = 0;
+//		}
+//		else
+//		{
+		//определение пришедшего состояния next_state
+		for (int j = 0; j < size; ++j)
 		{
-			cur_state = 0;
-		}
-		else
-		{
-			//определение пришедшего состояния next_state
-			for (int j = 0; j < size; ++j)
+			std::cout << (int) MARK_DEF;
+			std::cout.flush();
+			if ((s[j] == _s[i]) && (mark[j] == MARK_DEF))
 			{
-				if ((s[j] == _s[i]) && (mark[j] == FSMJson::MARK_DEF))
+				next_state = j;
+				break;
+			}
+			else if ((s[j] == '@') && (mark[j] == MARK_MULT))
+			{
+				//проверка, что s[j] - буква
+				if ((_s[i] >= 65) && (_s[i] <= 90) || (_s[i] >= 97) && (_s[i] <= 122))
 				{
 					next_state = j;
 					break;
 				}
-				else if ((s[j] == '@') && (mark[j] == FSMJson::MARK_MULT))
+			}
+			else if ((s[j] == '#') && (mark[j] == MARK_MULT))
+			{
+				//проверка, что s[j] - цифра
+				if ((_s[i] >= 48) && (_s[i] <= 57))
 				{
-					//проверка, что s[j] - буква
-					if ((_s[i] >= 65) && (_s[i] <= 90) || (_s[i] >= 97) && (_s[i] <= 122))
-					{
-						next_state = j;
-						break;
-					}
+					next_state = j;
+					break;
 				}
-				else if ((s[j] == '#') && (mark[j] == FSMJson::MARK_MULT))
+			}
+			else if ((s[j] == _s[i]) && (s[j] == '"'))
+			{
+				//TODO обработка кавычек
+				char wontState = -1;
+				if (isKey)
 				{
-					//проверка, что s[j] - цифра
-					if ((_s[i] >= 48) && (_s[i] <= 57))
+					if (!qOpened)
 					{
-						next_state = j;
-						break;
+						wontState = MARK_OPEN_Q_KEY; //я хочу состояние с такой меткой
+						qOpened = true;
+					}
+					else
+					{
+						wontState = MARK_CLOSE_Q_KEY;
+						qOpened = false;
+						isKey = false;
 					}
 				}
 				else
 				{
-					//TODO обработка кавычек
+					if (!qOpened)
+					{
+						wontState = MARK_OPEN_Q_VALUE; //я хочу состояние с такой меткой
+						qOpened = true;
+					}
+					else
+					{
+						wontState = MARK_CLOSE_Q_VALUE;
+						qOpened = false;
+						isKey = true;
+					}
 				}
+				if (mark[j] != wontState)
+				{
+					for (int k = 0; k < size; ++k)
+					{
+						if (mark[k] == wontState)
+							j = k;
+					}
+				}
+				next_state = j;
+				break;
 			}
-			//TODO проверка правильности пришедшего состояния
+		}
+		//TODO проверка правильности пришедшего состояния
+		if (startState)
+		{
+			startState = false;
+			cur_state = next_state;
+//			break;
+		}
+		else
+		{
 			for (int j = 0; j < size; ++j)
 			{
 				if ((fsm[cur_state][j] == 1) && (j == next_state))
@@ -154,11 +214,21 @@ bool FSMJson::isValidJson(const char *_s) const
 				}
 				else if (j == size - 1)
 				{
+					for (int k = 0; k < n - 1; ++k)
+					{
+						delete[] fsm[i];
+					}
+					delete[] fsm;
 					return false;
 				}
 			}
 		}
 		i++;
 	}
+	for (int i = 0; i < n - 1; ++i)
+	{
+		delete[] fsm[i];
+	}
+	delete[] fsm;
 	return true;
 }
