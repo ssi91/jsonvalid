@@ -1,13 +1,6 @@
 #include <iostream>
 #include "fsmjson.h"
 
-//const char FSMJson::MARK_DEF = 0;
-//static const char MARK_OPEN_Q_KEY = 1;
-//static const char MARK_CLOSE_Q_KEY = 2;
-//static const char MARK_OPEN_Q_VALUE = 3;
-//static const char MARK_CLOSE_Q_VALUE = 4;
-//static const char MARK_MULT = 5;
-
 FSMJson::FSMJson(const char *_s)
 {
 	n = 0;
@@ -118,17 +111,9 @@ bool FSMJson::isValidJson(const char *_s1) const
 	bool startState = true;
 	while (_s[i] != '\0')
 	{
-//		if (!i)
-//		{
-//			cur_state = 0;
-//		}
-//		else
-//		{
 		//определение пришедшего состояния next_state
 		for (int j = 0; j < size; ++j)
 		{
-			std::cout << (int) MARK_DEF;
-			std::cout.flush();
 			if ((s[j] == _s[i]) && (mark[j] == MARK_DEF))
 			{
 				next_state = j;
@@ -181,7 +166,7 @@ bool FSMJson::isValidJson(const char *_s1) const
 					{
 						wontState = MARK_CLOSE_Q_VALUE;
 						qOpened = false;
-						isKey = true;
+						isKey = true;//TODO исправить
 					}
 				}
 				if (mark[j] != wontState)
@@ -189,7 +174,10 @@ bool FSMJson::isValidJson(const char *_s1) const
 					for (int k = 0; k < size; ++k)
 					{
 						if (mark[k] == wontState)
+						{
 							j = k;
+							break;
+						}
 					}
 				}
 				next_state = j;
@@ -201,26 +189,21 @@ bool FSMJson::isValidJson(const char *_s1) const
 		{
 			startState = false;
 			cur_state = next_state;
-//			break;
 		}
 		else
 		{
-			for (int j = 0; j < size; ++j)
+			if (fsm[cur_state][next_state] == 1)
 			{
-				if ((fsm[cur_state][j] == 1) && (j == next_state))
+				cur_state = next_state;
+			}
+			else
+			{
+				for (int k = 0; k < n - 1; ++k)
 				{
-					cur_state = next_state;
-					break;
+					delete[] fsm[i];
 				}
-				else if (j == size - 1)
-				{
-					for (int k = 0; k < n - 1; ++k)
-					{
-						delete[] fsm[i];
-					}
-					delete[] fsm;
-					return false;
-				}
+				delete[] fsm;
+				return false;
 			}
 		}
 		i++;
