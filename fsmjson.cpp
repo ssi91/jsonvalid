@@ -119,6 +119,8 @@ bool FSMJson::isValidJson(const char *_s1) const
 		{
 			if ((s[j] == _s[i]) && (mark[j] == MARK_DEF))
 			{
+				if ((s[j] == '[') || (s[j] == '}') || (s[j] == ']') || (s[j] == '{') || (s[j] == ','))
+					isKey = true;
 				next_state = j;
 				break;
 			}
@@ -142,7 +144,6 @@ bool FSMJson::isValidJson(const char *_s1) const
 			}
 			else if ((s[j] == _s[i]) && (s[j] == '"'))
 			{
-				//TODO обработка кавычек
 				char wontState = -1;
 				if (isKey)
 				{
@@ -169,7 +170,6 @@ bool FSMJson::isValidJson(const char *_s1) const
 					{
 						wontState = MARK_CLOSE_Q_VALUE;
 						qOpened = false;
-						isKey = true;//TODO исправить
 					}
 				}
 				if (mark[j] != wontState)
