@@ -82,7 +82,7 @@ char **FSMJson::FSMMatrix() const
 	fsm[7][11] = 1;
 	fsm[8][6] = 1;
 	fsm[9][0] = 1;
-	fsm[9][11] = 1;
+	fsm[9][1] = 1;
 	fsm[10][2] = 1;
 	fsm[10][4] = 1;
 	fsm[10][5] = 1;
@@ -100,7 +100,8 @@ char **FSMJson::FSMMatrix() const
 
 bool FSMJson::isValidJson(const char *_s1) const
 {
-	char _s[] = "{\"key\":\"value\"}";
+//	char _s[] = "{\"key\":\"value\"}";
+	char _s[] = "{\"key\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"}]}";
 	std::cout << _s << std::endl;
 
 	char **fsm = FSMMatrix();
@@ -119,7 +120,7 @@ bool FSMJson::isValidJson(const char *_s1) const
 		{
 			if ((s[j] == _s[i]) && (mark[j] == MARK_DEF))
 			{
-				if ((s[j] == '[') || (s[j] == '}') || (s[j] == ']') || (s[j] == '{') || (s[j] == ','))
+				if ((s[j] == '[' || s[j] == '}' || s[j] == ']' || s[j] == '{' || s[j] == ',') && !isKey)
 					isKey = true;
 				next_state = j;
 				break;
@@ -203,7 +204,7 @@ bool FSMJson::isValidJson(const char *_s1) const
 			{
 				for (int k = 0; k < n - 1; ++k)
 				{
-					delete[] fsm[i];
+					delete[] fsm[k];
 				}
 				delete[] fsm;
 				return false;
