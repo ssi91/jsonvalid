@@ -72,6 +72,7 @@ char **FSMJson::FSMMatrix() const
 	fsm[4][4] = 1;
 	fsm[4][5] = 1;
 	fsm[4][9] = 1;
+	fsm[4][10] = 1;
 	fsm[4][12] = 1;
 	fsm[5][3] = 1;
 	fsm[6][6] = 1;
@@ -87,6 +88,7 @@ char **FSMJson::FSMMatrix() const
 	fsm[10][4] = 1;
 	fsm[10][5] = 1;
 	fsm[10][10] = 1;
+	fsm[10][11] = 1;
 	fsm[10][12] = 1;
 	fsm[11][2] = 1;
 	fsm[11][4] = 1;
@@ -101,7 +103,8 @@ char **FSMJson::FSMMatrix() const
 bool FSMJson::isValidJson(const char *_s1) const
 {
 //	char _s[] = "{\"key\":\"value\"}";
-	char _s[] = "{\"key\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"}]}";
+//	char _s[] = "{\"key\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"}]}";
+	char _s[] = "{\"error\":{\"error_code\":5,\"error_msg\":\"User authorization failed invalid session.\",\"request_params\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"},{\"key\":\"out\",\"value\":\"0\"},{\"key\":\"count\",\"value\":\"1\"},{\"key\":\"user_id\",\"value\":\"9556448\"},{\"key\":\"v\",\"value\":\"5.27\"},{\"key\":\"access_token\",\"value\":\"9efd022746e646c729c3d7abed71293671aeab43ecf2675b1f9a0af19e8f1a8407ee542c3e6de10044993\"}}}";
 	std::cout << _s << std::endl;
 
 	char **fsm = FSMMatrix();
@@ -128,7 +131,7 @@ bool FSMJson::isValidJson(const char *_s1) const
 			else if ((s[j] == '@') && (mark[j] == MARK_MULT))
 			{
 				//проверка, что s[j] - буква
-				if ((_s[i] >= 65) && (_s[i] <= 90) || (_s[i] >= 97) && (_s[i] <= 122))
+				if ((_s[i] >= 65) && (_s[i] <= 90) || (_s[i] >= 97) && (_s[i] <= 122)||(_s[i])=='_')
 				{
 					next_state = j;
 					break;
