@@ -1,5 +1,6 @@
 #include <iostream>
 #include "fsmjson.h"
+#include "stack.h"
 
 FSMJson::FSMJson(const char *_s)
 {
@@ -104,7 +105,7 @@ bool FSMJson::isValidJson(const char *_s1) const
 {
 //	char _s[] = "{\"key\":\"value\"}";
 //	char _s[] = "{\"key\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"}]}";
-	char _s[] = "{\"error\":{\"error_code\":5,\"error_msg\":\"User authorization failed invalid session.\",\"request_params\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"},{\"key\":\"out\",\"value\":\"0\"},{\"key\":\"count\",\"value\":\"1\"},{\"key\":\"user_id\",\"value\":\"9556448\"},{\"key\":\"v\",\"value\":\"5.27\"},{\"key\":\"access_token\",\"value\":\"9efd022746e646c729c3d7abed71293671aeab43ecf2675b1f9a0af19e8f1a8407ee542c3e6de10044993\"}}}";
+	char _s[] = "{\"error\":{\"error_code\":5,\"error_msg\":\"User authorization failed invalid session.\",\"request_params\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"},{\"key\":\"out\",\"value\":\"0\"},{\"key\":\"count\",\"value\":\"1\"},{\"key\":\"user_id\",\"value\":\"9556448\"},{\"key\":\"v\",\"value\":\"5.27\"},{\"key\":\"access_token\",\"value\":\"9efd022746e646c729c3d7abed71293671aeab43ecf2675b1f9a0af19e8f1a8407ee542c3e6de10044993\"}]}";
 	std::cout << _s << std::endl;
 
 	char **fsm = FSMMatrix();
@@ -116,6 +117,8 @@ bool FSMJson::isValidJson(const char *_s1) const
 	bool isKey = true; // if false - value
 	bool qOpened = false; //if opened - true
 	bool startState = true;
+	bool brackes = true; //false if was '[', else '{'
+	Stack stack(0);
 	while (_s[i] != '\0')
 	{
 		//определение пришедшего состояния next_state
@@ -125,13 +128,83 @@ bool FSMJson::isValidJson(const char *_s1) const
 			{
 				if ((s[j] == '[' || s[j] == '}' || s[j] == ']' || s[j] == '{' || s[j] == ',') && !isKey)
 					isKey = true;
+
+				if (s[j] == '{')
+				{
+					if (brackes)
+					{
+						stack.incTop();
+					}
+					else
+					{
+						stack.push(1);
+						brackes = true;
+					}
+				}
+				else if (s[j] == '[')
+				{
+					if (!brackes)
+					{
+						stack.incTop();
+					}
+					else
+					{
+						stack.push(1);
+						brackes = false;
+					}
+				}
+				else if (s[j] == '}')
+				{
+					if (brackes)
+					{
+						stack.decTop();
+						int top = stack.pop();
+						if (top)
+							stack.push(top);
+						else
+							brackes = false;
+					}
+					else
+					{
+						//TODO освободить память и вернуть false
+						for (int k = 0; k < n - 1; ++k)
+						{
+							delete[] fsm[k];
+						}
+						delete[] fsm;
+						return false;
+					}
+				}
+				else if (s[j] == ']')
+				{
+					if (!brackes)
+					{
+						stack.decTop();
+						int top = stack.pop();
+						if (top)
+							stack.push(top);
+						else
+							brackes = true;
+					}
+					else
+					{
+						//TODO освободить память и вернуть false
+						for (int k = 0; k < n - 1; ++k)
+						{
+							delete[] fsm[k];
+						}
+						delete[] fsm;
+						return false;
+					}
+				}
+
 				next_state = j;
 				break;
 			}
 			else if ((s[j] == '@') && (mark[j] == MARK_MULT))
 			{
 				//проверка, что s[j] - буква
-				if ((_s[i] >= 65) && (_s[i] <= 90) || (_s[i] >= 97) && (_s[i] <= 122)||(_s[i])=='_')
+				if ((_s[i] >= 65) && (_s[i] <= 90) || (_s[i] >= 97) && (_s[i] <= 122) || (_s[i]) == '_')
 				{
 					next_state = j;
 					break;

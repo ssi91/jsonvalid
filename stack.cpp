@@ -58,26 +58,35 @@ Stack::~Stack()
 
 void Stack::push(const int &_a)
 {
-	int *temp = new int[n];
-	for (int i = 0; i < n; ++i)
+	if (n)
 	{
-		temp[i] = a[i];
+		int *temp = new int[n];
+		for (int i = 0; i < n; ++i)
+		{
+			temp[i] = a[i];
+		}
+		if (n > 1)
+			delete[] a;
+		else
+			delete a;
+		++n;
+		a = new int[n];
+		for (int i = 0; i < n - 1; ++i)
+		{
+			a[i] = temp[i];
+		}
+		a[n - 1] = _a;
+		if (n > 1)
+			delete[] temp;
+		else
+			delete temp;
 	}
-	if (n > 1)
-		delete[] a;
 	else
-		delete a;
-	++n;
-	a = new int[n];
-	for (int i = 0; i < n - 1; ++i)
 	{
-		a[i] = temp[i];
+		++n;
+		a = new int;
+		a[0] = _a;
 	}
-	a[n - 1] = _a;
-	if (n > 1)
-		delete[] temp;
-	else
-		delete temp;
 }
 
 int Stack::pop()
