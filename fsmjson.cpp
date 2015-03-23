@@ -103,9 +103,8 @@ char **FSMJson::FSMMatrix() const
 
 bool FSMJson::isValidJson(const char *_s1) const
 {
-//	char _s[] = "{\"key\":\"value\"}";
-//	char _s[] = "{\"key\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"}]}";
-	char _s[] = "{\"error\":{\"error_code\":5,\"error_msg\":\"User authorization failed invalid session.\",\"request_params\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"},{\"key\":\"out\",\"value\":\"0\"},{\"key\":\"count\",\"value\":\"1\"},{\"key\":\"user_id\",\"value\":\"9556448\"},{\"key\":\"v\",\"value\":\"5.27\"},{\"key\":\"access_token\",\"value\":\"9efd022746e646c729c3d7abed71293671aeab43ecf2675b1f9a0af19e8f1a8407ee542c3e6de10044993\"}]}}";
+	char _s[] = "{\"error\":{\"error_code\":5,\"error_msg\":\"User authorization failed: invalid session.\",\"request_params\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"},{\"key\":\"out\",\"value\":\"0\"},{\"key\":\"count\",\"value\":\"1\"},{\"key\":\"user_id\",\"value\":\"9556448\"},{\"key\":\"v\",\"value\":\"5.27\"},{\"key\":\"access_token\",\"value\":\"9efd022746e646c729c3d7abed71293671aeab43ecf2675b1f9a0af19e8f1a8407ee542c3e6de10044993\"}}}";
+	//TODO обработка символа ':' как элемента множества @
 	std::cout << _s << std::endl;
 
 	char **fsm = FSMMatrix();
@@ -118,6 +117,7 @@ bool FSMJson::isValidJson(const char *_s1) const
 	bool qOpened = false; //if opened - true
 	bool startState = true;
 	bool brackes = true; //false if was '[', else '{'
+	bool esCh = false;
 	Stack stack(0);
 	while (_s[i] != '\0')
 	{
@@ -166,7 +166,6 @@ bool FSMJson::isValidJson(const char *_s1) const
 					}
 					else
 					{
-						//TODO освободить память и вернуть false
 						for (int k = 0; k < n - 1; ++k)
 						{
 							delete[] fsm[k];
@@ -188,7 +187,6 @@ bool FSMJson::isValidJson(const char *_s1) const
 					}
 					else
 					{
-						//TODO освободить память и вернуть false
 						for (int k = 0; k < n - 1; ++k)
 						{
 							delete[] fsm[k];
@@ -201,10 +199,10 @@ bool FSMJson::isValidJson(const char *_s1) const
 				next_state = j;
 				break;
 			}
-			else if ((s[j] == '@') && (mark[j] == MARK_MULT))
+			else if ((s[j] == '@') && (mark[j] == MARK_MULT) && qOpened)
 			{
 				//проверка, что s[j] - буква
-				if ((_s[i] >= 65) && (_s[i] <= 90) || (_s[i] >= 97) && (_s[i] <= 122) || (_s[i]) == '_')
+				if (_s[j] >= 32 && _s[i] <= 33 || (_s[i] >= 35) && (_s[i] <= 126))
 				{
 					next_state = j;
 					break;
@@ -264,7 +262,7 @@ bool FSMJson::isValidJson(const char *_s1) const
 				break;
 			}
 		}
-		//TODO проверка правильности пришедшего состояния
+		//проверка допустимости состояния
 		if (startState)
 		{
 			startState = false;
