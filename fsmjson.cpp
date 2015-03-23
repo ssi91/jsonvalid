@@ -103,8 +103,8 @@ char **FSMJson::FSMMatrix() const
 
 bool FSMJson::isValidJson(const char *_s1) const
 {
-	char _s[] = "{\"error\":{\"error_code\":5,\"error_msg\":\"User authorization failed: invalid session.\",\"request_params\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"},{\"key\":\"out\",\"value\":\"0\"},{\"key\":\"count\",\"value\":\"1\"},{\"key\":\"user_id\",\"value\":\"9556448\"},{\"key\":\"v\",\"value\":\"5.27\"},{\"key\":\"access_token\",\"value\":\"9efd022746e646c729c3d7abed71293671aeab43ecf2675b1f9a0af19e8f1a8407ee542c3e6de10044993\"}}}";
-	//TODO обработка символа ':' как элемента множества @
+	char _s[] = "{\"error\":{\"error_code\":5,\"error_msg\":\"User authorization failed: invalid session.\",\"request_params\":[{\"key\":\"oauth\",\"value\":\"1\"},{\"key\":\"method\",\"value\":\"messages.get\"},{\"key\":\"out\",\"value\":\"0\"},{\"key\":\"count\",\"value\":\"1\"},{\"key\":\"user_id\",\"value\":\"9556448\"},{\"key\":\"v\",\"value\":\"5.27\"},{\"key\":\"access_token\",\"value\":\"9efd022746e646c729c3d7abed71293671aeab43ecf2675b1f9a0af19e8f1a8407ee542c3e6de10044993\"}]}}";
+	//TODO экранирование кавычек
 	std::cout << _s << std::endl;
 
 	char **fsm = FSMMatrix();
@@ -207,6 +207,21 @@ bool FSMJson::isValidJson(const char *_s1) const
 					next_state = j;
 					break;
 				}
+				else
+				{
+					for (int k = 0; k < n - 1; ++k)
+					{
+						delete[] fsm[k];
+					}
+					delete[] fsm;
+					return false;
+				}
+//				else if(_s[j]=='"' && esCh)
+//				{
+//					esCh = false;
+//					next_state = j;
+//					break;
+//				}
 			}
 			else if ((s[j] == '#') && (mark[j] == MARK_MULT))
 			{
