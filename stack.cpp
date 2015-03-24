@@ -111,10 +111,7 @@ int Stack::pop()
 			{
 				a[i] = temp[i];
 			}
-			if (n > 1)
-				delete[] temp;
-			else
-				delete temp;
+			delete[] temp;
 		}
 		else
 		{
