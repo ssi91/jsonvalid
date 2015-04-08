@@ -13,6 +13,7 @@ private:
 	char *s;
 	size_t n;
 	char **FSMMatrix() const;
+	char **FSMMatrixStates(const size_t &_size = 5) const;
 
 	static const char MARK_DEF = 0;
 	static const char MARK_OPEN_Q_KEY = 1;

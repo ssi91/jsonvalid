@@ -104,8 +104,6 @@ char **FSMJson::FSMMatrix() const
 bool FSMJson::isValidJson(const char *_s) const
 {
 	//TODO экранирование кавычек
-	std::cout << _s << std::endl;
-
 	char **fsm = FSMMatrix();
 	size_t size = n - 1;
 	size_t i = 0;
@@ -308,4 +306,24 @@ bool FSMJson::isValidJson(const char *_s) const
 	}
 	delete[] fsm;
 	return true;
+}
+
+char **FSMJson::FSMMatrixStates(const size_t &_size) const
+{
+	char **fsms = new char *[_size];
+	for (int i = 0; i < _size; ++i)
+	{
+		fsms[i] = new char[_size];
+		for (int j = 0; j < _size; ++j)
+		{
+			fsms[i][j] = 0;
+		}
+	}
+	fsms[0][1] = 1;
+	fsms[1][2] = 1;
+	fsms[2][3] = -1;
+	fsms[2][4] = 1;
+	fsms[4][1] = 1;
+	fsms[4][2] = 1;
+	return fsms;
 }
