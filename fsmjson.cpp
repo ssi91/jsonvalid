@@ -327,3 +327,86 @@ char **FSMJson::FSMMatrixStates(const size_t &_size) const
 	fsms[4][2] = 1;
 	return fsms;
 }
+
+size_t FSMJson::getNextState(const char *_s, size_t &state, size_t &endIndex, const size_t &startIndex) const
+{
+//	size_t statesCount = 5;
+//	char **fsm = FSMMatrixStates(statesCount);
+	bool isKey = false;
+	bool isOpen = false; // true, while open
+	size_t cur_state = state ? state : 0;
+	size_t next_state;
+	size_t i = startIndex;
+	char excChar = '0';
+	Stack stack;
+	while (_s[i] != '\0')
+	{
+		if (!cur_state || cur_state == 3)
+		{
+			if (_s[i] == '"')
+			{
+				isOpen = revBoolVar(isOpen);
+				if (isOpen)
+				{
+					if (cur_state == 0 || cur_state == 3)
+						isKey = true;
+				}
+				else
+				{
+					if (isKey)
+					{
+						endIndex = i + 2;
+						return 1;
+					}
+				}
+			}
+		}
+		else if (cur_state == 1)
+		{
+			if (i == startIndex)
+			{
+				excChar = _s[i];
+			}
+			else
+			{
+				if (_s[i] == excChar && excChar != '"')
+					stack.incTop();
+				else if (_s[i] == ']' && excChar == '[' ||
+						 _s[i] == '}' && excChar == '{')
+				{
+					if (stack.getCount())
+					{
+						stack.decTop();
+						size_t top = stack.pop();
+						if(top)
+							stack.push(top);
+					}
+					else
+					{
+						endIndex = i + 2;
+						return 3;
+					}
+				}
+				else if (_s[i] == '"' && excChar == '"')
+				{
+					endIndex = i + 2;
+					return 2;
+				}
+			}
+		}
+		++i;
+	}
+
+//	for (int i = 0; i < statesCount; ++i)
+//	{
+//		delete[] fsm[i];
+//	}
+//	delete[] fsm;
+
+	return 0;
+}
+
+bool FSMJson::revBoolVar(bool sourse) const
+{
+	return !sourse;
+}

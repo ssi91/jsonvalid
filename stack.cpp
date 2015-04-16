@@ -131,7 +131,8 @@ void Stack::incTop()
 		++a[n - 1];
 	else
 	{
-		throw LOG_TRACE("Stack is empty")
+//		throw LOG_TRACE("Stack is empty")
+		push(1);
 	}
 }
 
