@@ -334,6 +334,7 @@ size_t FSMJson::getNextState(const char *_s, size_t &state, size_t &endIndex, co
 //	char **fsm = FSMMatrixStates(statesCount);
 	bool isKey = false;
 	bool isOpen = false; // true, while open
+	bool isNumber = false;
 	size_t cur_state = state ? state : 0;
 	size_t next_state;
 	size_t i = startIndex;
@@ -341,15 +342,14 @@ size_t FSMJson::getNextState(const char *_s, size_t &state, size_t &endIndex, co
 	Stack stack;
 	while (_s[i] != '\0')
 	{
-		if (!cur_state || cur_state == 3)
+		if (cur_state != 1)
 		{
 			if (_s[i] == '"')
 			{
 				isOpen = revBoolVar(isOpen);
 				if (isOpen)
 				{
-					if (cur_state == 0 || cur_state == 3)
-						isKey = true;
+					isKey = true;
 				}
 				else
 				{
@@ -361,36 +361,48 @@ size_t FSMJson::getNextState(const char *_s, size_t &state, size_t &endIndex, co
 				}
 			}
 		}
-		else if (cur_state == 1)
+		else
 		{
-			if (i == startIndex)
+			if (isNumber && _s[i] == ',')
 			{
-				excChar = _s[i];
+				endIndex = i + 1;
+				return 2;
 			}
 			else
 			{
-				if (_s[i] == excChar && excChar != '"')
-					stack.incTop();
-				else if (_s[i] == ']' && excChar == '[' ||
-						 _s[i] == '}' && excChar == '{')
+				if (i == startIndex)
 				{
-					if (stack.getCount())
+					if (_s[i] >= '0' && _s[i] <= '9')
+						isNumber = true;
+					if (_s[i] == '[')
+						++i;
+					excChar = _s[i];
+				}
+				else
+				{
+					if (_s[i] == excChar && excChar != '"')
+						stack.incTop();
+					else if (_s[i] == ']' && excChar == '[' ||
+							 _s[i] == '}' && excChar == '{')
 					{
-						stack.decTop();
-						size_t top = stack.pop();
-						if(top)
-							stack.push(top);
+						if (stack.getCount())
+						{
+							stack.decTop();
+							size_t top = stack.pop();
+							if (top)
+								stack.push(top);
+						}
+						else
+						{
+							endIndex = i + 2;
+							return 3;
+						}
 					}
-					else
+					else if (_s[i] == '"' && excChar == '"')
 					{
 						endIndex = i + 2;
-						return 3;
+						return 2;
 					}
-				}
-				else if (_s[i] == '"' && excChar == '"')
-				{
-					endIndex = i + 2;
-					return 2;
 				}
 			}
 		}

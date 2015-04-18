@@ -13,11 +13,21 @@ int main()
 		std::cout << "valid" << std::endl;
 	size_t state = 0, endIndex;
 	size_t start = 0;
-	state = fsmJson.getNextState(testStr.c_str(), state, endIndex, start);
-	std::cout << state << std::endl;
-	start = endIndex;
-	state = fsmJson.getNextState(testStr.c_str(), state, endIndex, start);
-	std::cout << state << std::endl;
-	std::cout << testStr.substr(start, endIndex - start) << std::endl;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		state = fsmJson.getNextState(testStr.c_str(), state, endIndex, start);
+		if (state == 3)
+		{
+			testStr = testStr.substr(start, endIndex - start);
+			start = 0;
+			std::cout << state << ": " + testStr << std::endl;
+		}
+		else
+		{
+			std::cout << state << ": " + testStr.substr(start, endIndex - start) << std::endl;
+			start = endIndex;
+		}
+	}
 	return 0;
 }
