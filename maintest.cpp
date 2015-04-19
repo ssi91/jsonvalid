@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "fsmjson.h"
+#include "renderexception.h"
 
 int main()
 {
@@ -13,21 +14,28 @@ int main()
 		std::cout << "valid" << std::endl;
 	size_t state = 0, endIndex;
 	size_t start = 0;
-
-	for (int i = 0; i < 4; ++i)
+	try
 	{
-		state = fsmJson.getNextState(testStr.c_str(), state, endIndex, start);
-		if (state == 3)
+
+		for (int i = 0; i < 4; ++i)
 		{
-			testStr = testStr.substr(start, endIndex - start);
-			start = 0;
-			std::cout << state << ": " + testStr << std::endl;
+			state = fsmJson.getNextState(testStr.c_str(), state, endIndex, start);
+			if (state == 3)
+			{
+				testStr = testStr.substr(start, endIndex - start);
+				start = 0;
+				std::cout << state << ": " + testStr << std::endl;
+			}
+			else
+			{
+				std::cout << state << ": " + testStr.substr(start, endIndex - start) << std::endl;
+				start = endIndex;
+			}
 		}
-		else
-		{
-			std::cout << state << ": " + testStr.substr(start, endIndex - start) << std::endl;
-			start = endIndex;
-		}
+	}
+	catch (RenderException *e)
+	{
+		std::cout << e->what();
 	}
 	return 0;
 }

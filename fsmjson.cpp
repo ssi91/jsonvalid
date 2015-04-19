@@ -1,6 +1,6 @@
 #include <iostream>
 #include "fsmjson.h"
-#include "stack.h"
+#include "Stack.h"
 
 FSMJson::FSMJson(const char *_s)
 {
@@ -115,7 +115,7 @@ bool FSMJson::isValidJson(const char *_s) const
 	bool startState = true;
 	bool brackes = true; //false if was '[', else '{'
 	bool esCh = false;
-	Stack stack(0);
+	Stack<int> stack(0);
 	while (_s[i] != '\0')
 	{
 		//определение пришедшего состояния next_state
@@ -339,7 +339,7 @@ size_t FSMJson::getNextState(const char *_s, size_t &state, size_t &endIndex, co
 	size_t next_state;
 	size_t i = startIndex;
 	char excChar = '0';
-	Stack stack;
+	Stack<int> stack;
 	while (_s[i] != '\0')
 	{
 		if (cur_state != 1)
@@ -381,7 +381,12 @@ size_t FSMJson::getNextState(const char *_s, size_t &state, size_t &endIndex, co
 				else
 				{
 					if (_s[i] == excChar && excChar != '"')
-						stack.incTop();
+					{
+						if (stack.getCount())
+							stack.incTop();
+						else
+							stack.push(1);
+					}
 					else if (_s[i] == ']' && excChar == '[' ||
 							 _s[i] == '}' && excChar == '{')
 					{
