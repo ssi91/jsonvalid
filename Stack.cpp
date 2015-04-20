@@ -149,3 +149,12 @@ size_t Stack<T>::getCount()
 {
 	return count;
 }
+
+template<class T>
+T &Stack<T>::getTop()
+{
+	if (count)
+	{
+		return a[count - 1];
+	}
+}

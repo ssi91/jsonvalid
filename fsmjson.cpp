@@ -1,6 +1,7 @@
 #include <iostream>
 #include "fsmjson.h"
 #include "Stack.h"
+#include "jsonarraystruct.h"
 
 FSMJson::FSMJson(const char *_s)
 {
@@ -22,7 +23,6 @@ FSMJson::FSMJson(const char *_s)
 		s = new char[n];
 		strcpy(s, _s);
 	}
-	std::cout << n << std::endl;
 }
 
 FSMJson::FSMJson()
@@ -426,4 +426,36 @@ size_t FSMJson::getNextState(const char *_s, size_t &state, size_t &endIndex, co
 bool FSMJson::revBoolVar(bool sourse) const
 {
 	return !sourse;
+}
+
+void FSMJson::setInMap(std::string const &_s)
+{
+	if (isValidJson(_s.c_str()))
+		std::cout << "valid" << std::endl;
+	size_t state = 0, endIndex;
+	size_t start = 0;
+	std::string testStr = _s;
+	Stack<JsonArray> stack;
+	while (endIndex < _s.length() - 1)
+	{
+		state = getNextState(testStr.c_str(), state, endIndex, start);
+		if (state == 3)
+		{
+			JsonArray array = {start, endIndex, 0, 0, testStr.substr(start, endIndex - start)};
+			stack.push(array);
+			testStr = testStr.substr(start, endIndex - start);
+			start = 0;
+//			std::cout << state << ": " + testStr << std::endl;
+		}
+		else
+		{
+//			std::cout << state << ": " + testStr.substr(start, endIndex - start) << std::endl;
+			if (stack.getCount())
+			{
+				stack.getTop().curent = endIndex;
+				stack.getTop().lastState = state;
+			}
+			start = endIndex;
+		}
+	}
 }

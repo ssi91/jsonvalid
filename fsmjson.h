@@ -15,6 +15,7 @@ private:
 	char **FSMMatrix() const;
 	char **FSMMatrixStates(const size_t &_size = 5) const;
 	bool revBoolVar(bool sourse) const;
+	size_t getNextState(const char *_s, size_t &state, size_t &endIndex, const size_t &startIndex = 0) const;
 
 	static const char MARK_DEF = 0;
 	static const char MARK_OPEN_Q_KEY = 1;
@@ -29,7 +30,7 @@ public:
 	FSMJson(FSMJson &_fsm);
 	~FSMJson();
 	bool isValidJson(const char *_s) const;
-	size_t getNextState(const char *_s, size_t &state, size_t &endIndex, const size_t &startIndex = 0) const;
+	void setInMap(std::string const &_s);
 };
 
 

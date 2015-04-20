@@ -22,6 +22,7 @@ public:
 	void incTop();
 	void decTop();
 	size_t getCount();
+	T &getTop();
 };
 
 #include "Stack.cpp"
