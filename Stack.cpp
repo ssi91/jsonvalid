@@ -35,13 +35,22 @@ void Stack<T>::push(T const &_a)
 {
 	if (count)
 	{
-		T *temp = new T[count];
-		for (int i = 0; i < count; ++i)
+		T *temp;
+		if (count > 1)
 		{
-			temp[i] = a[i];
+			temp = new T[count];
+			for (int i = 0; i < count; ++i)
+			{
+				temp[i] = a[i];
+			}
+		}
+		else
+		{
+			temp = new T;
+			temp[0] = a[0];
 		}
 		if (count > 1)
-			delete a;
+			delete[] a;
 		else
 			delete a;
 		a = new T[count + 1];
