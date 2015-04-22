@@ -13,6 +13,7 @@ struct JsonArray
 	size_t end;
 	size_t curent;
 	size_t lastState;
+	char openChar;
 	std::string jsonArrayString;
 };
 #endif //TEMPLATESTACK_JSONARRAYSTRUCT_H

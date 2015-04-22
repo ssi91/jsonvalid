@@ -328,97 +328,61 @@ char **FSMJson::FSMMatrixStates(const size_t &_size) const
 	return fsms;
 }
 
-size_t FSMJson::getNextState(const char *_s, size_t &state, size_t &endIndex, const size_t &startIndex) const
+size_t FSMJson::getNextState(const char *_s, size_t &state, size_t &endIndex, size_t &startIndex) const
 {
-//	size_t statesCount = 5;
-//	char **fsm = FSMMatrixStates(statesCount);
 	bool isKey = false;
 	bool isOpen = false; // true, while open
 	bool isNumber = false;
-	size_t cur_state = state ? state : 0;
-	size_t next_state;
+	size_t cur_state = state ? state : 3; //если пришло состояние 0, то устанавливаем его как валидный JSON
 	size_t i = startIndex;
 	char excChar = '0';
-	Stack<int> stack;
 	while (_s[i] != '\0')
 	{
-		if (cur_state != 1)
+		if (cur_state == 4 || cur_state == 3 || cur_state == 2)
 		{
+			++i;
+			if (_s[i] == '"') //получено состояние 1(ключ)
+			{
+				startIndex = i;
+				getLimits(startIndex, endIndex, '"', _s);
+				return 1;
+			}
+			else if ((cur_state == 4 || cur_state == 3) && _s[i] == '{') //получено состояние 3
+			{
+				startIndex = i;
+				getLimits(startIndex, endIndex, '}', _s);
+				return 3;
+			}
+		}
+		else if (cur_state == 1)
+		{
+			++i;
 			if (_s[i] == '"')
 			{
-				isOpen = revBoolVar(isOpen);
-				if (isOpen)
-				{
-					isKey = true;
-				}
-				else
-				{
-					if (isKey)
-					{
-						endIndex = i + 2;
-						return 1;
-					}
-				}
-			}
-		}
-		else
-		{
-			if (isNumber && _s[i] == ',')
-			{
-				endIndex = i + 1;
+				startIndex = i;
+				getLimits(startIndex, endIndex, '"', _s);
 				return 2;
 			}
-			else
+			else if (_s[i] >= '0' && _s[i] <= '9')
 			{
-				if (i == startIndex)
-				{
-					if (_s[i] >= '0' && _s[i] <= '9')
-						isNumber = true;
-					if (_s[i] == '[')
-						++i;
-					excChar = _s[i];
-				}
-				else
-				{
-					if (_s[i] == excChar && excChar != '"')
-					{
-						if (stack.getCount())
-							stack.incTop();
-						else
-							stack.push(1);
-					}
-					else if (_s[i] == ']' && excChar == '[' ||
-							 _s[i] == '}' && excChar == '{')
-					{
-						if (stack.getCount())
-						{
-							stack.decTop();
-							size_t top = stack.pop();
-							if (top)
-								stack.push(top);
-						}
-						else
-						{
-							endIndex = i + 2;
-							return 3;
-						}
-					}
-					else if (_s[i] == '"' && excChar == '"')
-					{
-						endIndex = i + 2;
-						return 2;
-					}
-				}
+				startIndex = i;
+				getLimits(startIndex, endIndex, ',', _s);
+				return 2;
+			}
+			else if (_s[i] == '{')
+			{
+				startIndex = i;
+				getLimits(startIndex, endIndex, '}', _s);
+				return 3;
+			}
+			else if (_s[i] == '[')
+			{
+				startIndex = i;
+				getLimits(startIndex, endIndex, ']', _s);
+				return 4;
 			}
 		}
-		++i;
 	}
-
-//	for (int i = 0; i < statesCount; ++i)
-//	{
-//		delete[] fsm[i];
-//	}
-//	delete[] fsm;
 
 	return 0;
 }
@@ -432,24 +396,23 @@ void FSMJson::setInMap(std::string const &_s)
 {
 	if (isValidJson(_s.c_str()))
 		std::cout << "valid" << std::endl;
-	size_t state = 0, endIndex;
+	size_t state = 0, endIndex = 0;
 	size_t start = 0;
 	std::string testStr = _s;
 	Stack<JsonArray> stack;
+	stack.push({0, _s.length() - 1, 0, 0, _s[0], _s});
 	while (endIndex < _s.length() - 1)
 	{
 		state = getNextState(testStr.c_str(), state, endIndex, start);
-		if (state == 3)
+		if (state == 3 || state == 4)
 		{
-			JsonArray array = {start, endIndex, 0, 0, testStr.substr(start, endIndex - start)};
+			testStr = testStr.substr(start, endIndex - (start - 1));
+			JsonArray array = {start, endIndex, 0, 0, testStr[0], testStr};
 			stack.push(array);
-			testStr = testStr.substr(start, endIndex - start);
-			start = 0;
-//			std::cout << state << ": " + testStr << std::endl;
+			endIndex = start = 0;
 		}
 		else
 		{
-//			std::cout << state << ": " + testStr.substr(start, endIndex - start) << std::endl;
 			if (stack.getCount())
 			{
 				stack.getTop().curent = endIndex;
@@ -459,3 +422,23 @@ void FSMJson::setInMap(std::string const &_s)
 		}
 	}
 }
+
+void FSMJson::getLimits(size_t &start, size_t &end, const char ch, const std::string &_s) const
+{
+	end = start;
+	size_t braces = 0;
+	++end;
+	while (_s[end] != ch || braces)
+	{
+		if (ch == '}' && _s[end] == '{' || ch == ']' && _s[end] == '[')
+		{
+			++braces;
+		}
+		else if (ch == _s[end])
+		{
+			--braces;
+		}
+		++end;
+	}
+}
+//<div style="text-align:left"><img src="http://100hostov.com/sites/354/uploads/images/elementi%20diz%20glavn/04%20elem_diz.jpg" style="border:0px #000000;width:230px;height:33px;vertical-align:baseline"></div><div style="text-align:left"></div><div style="text-align:left"></div><div style="text-align:left"><div></div><div><div><div><div><div>25 - 26.04</div></div></div><div><strong>Открытые региональные соревнования по легкой атлетике памяти&nbsp;С.К.Иконникова&nbsp;</strong></div><div>  <div><strong>г.&nbsp;Асино </strong> <br></div><br></div><div>23 - 26.04</div><div><strong><p text-align:center;text-align:center"="" style="display: inline !important;">Открытое Первенство Томской области «Весенние ласточки»</p></strong></div><div><strong><p text-align:center;text-align:center"="" style="display: inline !important;"> памяти М.Мучника по художественной гимнастике</p></strong></div><div><strong>«Дворец зрелищ и спорта»&nbsp;</strong></div>  <div><br></div><div></div><div><p text-align:center;text-align:center"="" style="display: inline !important;">03.05&nbsp;</p></div><div><strong>Футбол. Первенство ФНЛ&nbsp;</strong></div><div><p text-align:center;text-align:center"="" style="display: inline !important;"><strong>Томь -</strong><strong>&nbsp;Балтика</strong><br></p></div><div><p text-align:center;text-align:center"="" style="display: inline !important;"><strong>стадион "Труд"&nbsp;</strong></p></div>  <div><p text-align:center;text-align:center"="" style="display: inline !important;"><br></p></div><div><p text-align:center;text-align:center"="" style="display: inline !important;">16.05&nbsp;</p></div><div><strong>Футбол. Первенство ФНЛ&nbsp;</strong></div><div><p text-align:center;text-align:center"="" style="display: inline !important;"><strong>Томь -</strong><strong>&nbsp;Волгарь</strong><br></p></div><div><p text-align:center;text-align:center"="" style="display: inline !important;"><strong>стадион "Труд"&nbsp;</strong></p></div>  <div><p text-align:center;text-align:center"="" style="display: inline !important;"><br></p></div><div><div><p text-align:center;text-align:center"="" style="display: inline !important;">17.05&nbsp;</p></div><div><strong>«Российский Азимут»&nbsp;.&nbsp;Всероссийские&nbsp;соревнования&nbsp;</strong></div><div><strong>по спортивному ориентированию&nbsp;</strong><br></div><div><p text-align:center;text-align:center"="" style="display: inline !important;"><strong>Нижняя&nbsp;терраса&nbsp;Лагерного сада</strong></p></div>  <p text-align:center;text-align:center"="" style="display: inline !important;"><br></p></div><div><p text-align:center;text-align:center"="" style="display: inline !important;">30.05&nbsp;</p></div><div><strong>Футбол. Первенство ФНЛ&nbsp;</strong></div><div><p text-align:center;text-align:center"="" style="display: inline !important;"><strong>Томь -</strong><strong>&nbsp;Динамо</strong><br></p></div><div><p text-align:center;text-align:center"="" style="display: inline !important;"><strong>стадион "Труд"&nbsp;</strong></p></div>  <p text-align:center;text-align:center"=""><br></p><p style="font-weight: bold;" text-align:center;text-align:center"=""><strong>&nbsp;</strong></p>  <br></div><div><a href="http://sportus.pro/%D0%A1%D0%BF%D0%BE%D1%80%D1%82%D0%B8%D0%B2%D0%BD%D0%B0%D1%8F%20%D0%B0%D1%84%D0%B8%D1%88%D0%B0">Все спортивные события</a></div>  <br></div>  </div>

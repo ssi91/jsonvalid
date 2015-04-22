@@ -15,7 +15,8 @@ private:
 	char **FSMMatrix() const;
 	char **FSMMatrixStates(const size_t &_size = 5) const;
 	bool revBoolVar(bool sourse) const;
-	size_t getNextState(const char *_s, size_t &state, size_t &endIndex, const size_t &startIndex = 0) const;
+	size_t getNextState(const char *_s, size_t &state, size_t &endIndex, size_t &startIndex) const;
+	void getLimits(size_t &start, size_t &end, const char ch, const std::string &_s) const;
 
 	static const char MARK_DEF = 0;
 	static const char MARK_OPEN_Q_KEY = 1;
