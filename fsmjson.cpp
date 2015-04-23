@@ -398,7 +398,6 @@ void FSMJson::setInMap(std::string const &_s)
 	if (isValidJson(_s.c_str()))
 		std::cout << "valid" << std::endl;
 	size_t endIndex = 0;
-//	size_t start = 0;
 	std::string subStr = _s;
 	Stack<JsonArray> stack;
 	stack.push({0, _s.length() - 1, 0, 0, _s[0], _s});
@@ -410,34 +409,18 @@ void FSMJson::setInMap(std::string const &_s)
 			subStr = stack.getTop().jsonArrayString.substr(stack.getTop().curent, endIndex - (stack.getTop().curent - 1));
 			JsonArray array = {stack.getTop().curent, endIndex, 0, 0, subStr[0], subStr};
 			stack.push(array);
-//			endIndex = start = 0;
 		}
 		else
 		{
 			stack.getTop().curent = endIndex;
-			if (stack.getTop().lastState == 2)
+			if (stack.getTop().lastState == 2 || !stack.getTop().lastState)
 			{
-//				std::cout << stack.getTop().jsonArrayString[endIndex] << std::endl;
-				++endIndex;
+				if (stack.getTop().lastState)
+					++endIndex;
 				if (stack.getTop().jsonArrayString[endIndex] == OCChars(stack.getTop().openChar))
 				{
 					size_t currentIndex = stack.getTop().end;
-					stack.pop();
-					if (stack.getCount())
-					{
-						stack.getTop().curent = currentIndex + 1;
-					}
-					else
-					{
-						break;
-					}
-				}
-			}
-			else if (!stack.getTop().lastState)
-			{
-				if (stack.getTop().jsonArrayString[endIndex] == OCChars(stack.getTop().openChar))
-				{
-					size_t currentIndex = stack.getTop().end;
+					std::cout << stack.getTop().jsonArrayString << std::endl;
 					stack.pop();
 					if (stack.getCount())
 					{
