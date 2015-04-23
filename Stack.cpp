@@ -24,8 +24,6 @@ Stack<T>::~Stack()
 {
 	if (!getCount())
 		return;
-	else if (getCount() == 1)
-		delete a;
 	else
 		delete[] a;
 }
@@ -33,44 +31,27 @@ Stack<T>::~Stack()
 template<class T>
 void Stack<T>::push(T const &_a)
 {
+	T *temp;
 	if (count)
 	{
-		T *temp;
-		if (count > 1)
+		temp = new T[count];
+		for (int i = 0; i < count; ++i)
 		{
-			temp = new T[count];
-			for (int i = 0; i < count; ++i)
-			{
-				temp[i] = a[i];
-			}
+			temp[i] = a[i];
 		}
-		else
-		{
-			temp = new T;
-			temp[0] = a[0];
-		}
-		if (count > 1)
-			delete[] a;
-		else
-			delete a;
-		a = new T[count + 1];
-
+		delete[] a;
+	}
+	a = new T[count + 1];
+	if (count)
+	{
 		for (int i = 0; i < count; ++i)
 		{
 			a[i] = temp[i];
 		}
-		a[count] = _a;
-		if (count > 1)
-			delete[] temp;
-		else
-			delete temp;
+		delete[] temp;
 	}
-	else
-	{
-		a = new T;
-		a[0] = _a;
-	}
-	count++;
+	a[count] = _a;
+	++count;
 }
 
 template<class T>
@@ -82,40 +63,22 @@ T Stack<T>::pop()
 		--count;
 		if (count)
 		{
-			T *temp;
-			if (count > 1)
+			T *temp = new T[count];
+			for (int i = 0; i < count; ++i)
 			{
-				temp = new T[count];
-				for (int i = 0; i < count; ++i)
-				{
-					temp[i] = a[i];
-				}
+				temp[i] = a[i];
 			}
-			else
-			{
-				temp = new T;
-				temp[0] = a[0];
-			}
-//			if (count > 1)
 			delete[] a;
-//			else
-//				delete a;
-			if (count > 1)
-				a = new T[count];
-			else
-				a = new T;
+			a = new T[count];
 			for (int i = 0; i < count; ++i)
 			{
 				a[i] = temp[i];
 			}
-			if (count > 1)
-				delete[] temp;
-			else
-				delete temp;
+			delete[] temp;
 		}
 		else
 		{
-			delete a;
+			delete[] a;
 		}
 		return top;
 	}
