@@ -1,6 +1,7 @@
 #include <iostream>
 #include "fsmjson.h"
-#include "stack.h"
+#include "Stack.h"
+#include "jsonarraystruct.h"
 
 FSMJson::FSMJson(const char *_s)
 {
@@ -22,7 +23,6 @@ FSMJson::FSMJson(const char *_s)
 		s = new char[n];
 		strcpy(s, _s);
 	}
-	std::cout << n << std::endl;
 }
 
 FSMJson::FSMJson()
@@ -104,8 +104,6 @@ char **FSMJson::FSMMatrix() const
 bool FSMJson::isValidJson(const char *_s) const
 {
 	//TODO экранирование кавычек
-	std::cout << _s << std::endl;
-
 	char **fsm = FSMMatrix();
 	size_t size = n - 1;
 	size_t i = 0;
@@ -117,7 +115,7 @@ bool FSMJson::isValidJson(const char *_s) const
 	bool startState = true;
 	bool brackes = true; //false if was '[', else '{'
 	bool esCh = false;
-	Stack stack(0);
+	Stack<int> stack(0);
 	while (_s[i] != '\0')
 	{
 		//определение пришедшего состояния next_state
@@ -308,4 +306,160 @@ bool FSMJson::isValidJson(const char *_s) const
 	}
 	delete[] fsm;
 	return true;
+}
+
+char **FSMJson::FSMMatrixStates(const size_t &_size) const
+{
+	char **fsms = new char *[_size];
+	for (int i = 0; i < _size; ++i)
+	{
+		fsms[i] = new char[_size];
+		for (int j = 0; j < _size; ++j)
+		{
+			fsms[i][j] = 0;
+		}
+	}
+	fsms[0][1] = 1;
+	fsms[1][2] = 1;
+	fsms[2][3] = -1;
+	fsms[2][4] = 1;
+	fsms[4][1] = 1;
+	fsms[4][2] = 1;
+	return fsms;
+}
+
+size_t FSMJson::getNextState(const char *_s, size_t &state, size_t &endIndex, size_t &startIndex) const
+{
+	bool isKey = false;
+	bool isOpen = false; // true, while open
+	bool isNumber = false;
+	size_t cur_state = state ? state : 3; //если пришло состояние 0, то устанавливаем его как валидный JSON
+	size_t i = startIndex;
+	char excChar = '0';
+	while (_s[i] != '\0')
+	{
+		if (cur_state == 4 || cur_state == 3 || cur_state == 2)
+		{
+			++i;
+			if (_s[i] == '"') //получено состояние 1(ключ)
+			{
+				startIndex = i;
+				getLimits(startIndex, endIndex, '"', _s);
+				return 1;
+			}
+			else if ((cur_state == 4 || cur_state == 3) && _s[i] == '{') //получено состояние 3
+			{
+				startIndex = i;
+				getLimits(startIndex, endIndex, '}', _s);
+				return 3;
+			}
+		}
+		else if (cur_state == 1)
+		{
+			++i;
+			if (_s[i] == '"')
+			{
+				startIndex = i;
+				getLimits(startIndex, endIndex, '"', _s);
+				return 2;
+			}
+			else if (_s[i] >= '0' && _s[i] <= '9')
+			{
+				startIndex = i;
+				getLimits(startIndex, endIndex, ',', _s);
+				return 2;
+			}
+			else if (_s[i] == '{')
+			{
+				startIndex = i;
+				getLimits(startIndex, endIndex, '}', _s);
+				return 3;
+			}
+			else if (_s[i] == '[')
+			{
+				startIndex = i;
+				getLimits(startIndex, endIndex, ']', _s);
+				return 4;
+			}
+		}
+	}
+	endIndex = i;
+	--endIndex;
+	return 0;
+}
+
+bool FSMJson::revBoolVar(bool sourse) const
+{
+	return !sourse;
+}
+
+void FSMJson::setInMap(std::string const &_s)
+{
+	if (isValidJson(_s.c_str()))
+		std::cout << "valid" << std::endl;
+	size_t endIndex = 0;
+	std::string subStr = _s;
+	Stack<JsonArray> stack;
+	stack.push({0, _s.length() - 1, 0, 0, _s[0], _s});
+	while (stack.getTop().curent < _s.length() - 1)
+	{
+		stack.getTop().lastState = getNextState(stack.getTop().jsonArrayString.c_str(), stack.getTop().lastState, endIndex, stack.getTop().curent);
+		if (stack.getTop().lastState == 3 || stack.getTop().lastState == 4)
+		{
+			subStr = stack.getTop().jsonArrayString.substr(stack.getTop().curent, endIndex - (stack.getTop().curent - 1));
+			JsonArray array = {stack.getTop().curent, endIndex, 0, 0, subStr[0], subStr};
+			stack.push(array);
+		}
+		else
+		{
+			stack.getTop().curent = endIndex;
+			if (stack.getTop().lastState == 2 || !stack.getTop().lastState)
+			{
+				if (stack.getTop().lastState)
+					++endIndex;
+				if (stack.getTop().jsonArrayString[endIndex] == OCChars(stack.getTop().openChar))
+				{
+					size_t currentIndex = stack.getTop().end;
+					std::cout << stack.getTop().jsonArrayString << std::endl;
+					stack.pop();
+					if (stack.getCount())
+					{
+						stack.getTop().curent = currentIndex + 1;
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+void FSMJson::getLimits(size_t &start, size_t &end, const char ch, const std::string &_s) const
+{
+	end = start;
+	size_t braces = 0;
+	++end;
+	while (_s[end] != ch || braces)
+	{
+		if (ch == '}' && _s[end] == '{' || ch == ']' && _s[end] == '[')
+		{
+			++braces;
+		}
+		else if (ch == _s[end])
+		{
+			--braces;
+		}
+		++end;
+	}
+}
+
+char FSMJson::OCChars(const char c) const
+{
+	if (c == '{')
+		return '}';
+	else if (c == '[')
+		return ']';
+	return 0;
 }
