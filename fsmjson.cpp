@@ -393,12 +393,16 @@ bool FSMJson::revBoolVar(bool sourse) const
 	return !sourse;
 }
 
-void FSMJson::setInMap(std::string const &_s)
+void * FSMJson::setInMap(std::string const &_s, char const *key)
 {
 	if (isValidJson(_s.c_str()))
 		std::cout << "valid" << std::endl;
 	size_t endIndex = 0;
 	std::string subStr = _s;
+	std::string sKey;
+	if (key)
+		sKey = key;
+	std::string curentKey;
 	Stack<JsonArray> stack;
 	stack.push({0, _s.length() - 1, 0, 0, _s[0], _s});
 	while (stack.getTop().curent < _s.length() - 1)
@@ -407,31 +411,46 @@ void FSMJson::setInMap(std::string const &_s)
 		if (stack.getTop().lastState == 3 || stack.getTop().lastState == 4)
 		{
 			subStr = stack.getTop().jsonArrayString.substr(stack.getTop().curent, endIndex - (stack.getTop().curent - 1));
+			if (key && curentKey == sKey)
+			{
+				std::string *dd = new std::string(subStr);
+				return (void *)dd;
+			}
 			JsonArray array = {stack.getTop().curent, endIndex, 0, 0, subStr[0], subStr};
 			stack.push(array);
 		}
-		else
+		else if (stack.getTop().lastState == 2 || !stack.getTop().lastState)
 		{
-			stack.getTop().curent = endIndex;
-			if (stack.getTop().lastState == 2 || !stack.getTop().lastState)
+			if (key && curentKey == sKey)
 			{
-				if (stack.getTop().lastState)
-					++endIndex;
-				if (stack.getTop().jsonArrayString[endIndex] == OCChars(stack.getTop().openChar))
+				std::string pureVal = stack.getTop().jsonArrayString.substr(stack.getTop().curent, endIndex - (stack.getTop().curent - 1))
+						.substr(1, stack.getTop().jsonArrayString.substr(stack.getTop().curent, endIndex - (stack.getTop().curent - 1)).length() - 2);
+				std::string *dd = new std::string(pureVal);
+				return (void *)dd;
+//				return (void) pureVal;
+			}
+			stack.getTop().curent = endIndex;
+			if (stack.getTop().lastState)
+				++endIndex;
+			if (stack.getTop().jsonArrayString[endIndex] == OCChars(stack.getTop().openChar))
+			{
+				size_t currentIndex = stack.getTop().end;
+				stack.pop();
+				if (stack.getCount())
 				{
-					size_t currentIndex = stack.getTop().end;
-					std::cout << stack.getTop().jsonArrayString << std::endl;
-					stack.pop();
-					if (stack.getCount())
-					{
-						stack.getTop().curent = currentIndex + 1;
-					}
-					else
-					{
-						break;
-					}
+					stack.getTop().curent = currentIndex + 1;
+				}
+				else
+				{
+					break;
 				}
 			}
+		}
+		else if (key)
+		{
+			curentKey = stack.getTop().jsonArrayString.substr(stack.getTop().curent, endIndex - (stack.getTop().curent - 1))
+					.substr(1, stack.getTop().jsonArrayString.substr(stack.getTop().curent, endIndex - (stack.getTop().curent - 1)).length() - 2);
+			stack.getTop().curent = endIndex;
 		}
 	}
 }

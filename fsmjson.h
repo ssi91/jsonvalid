@@ -32,7 +32,7 @@ public:
 	FSMJson(FSMJson &_fsm);
 	~FSMJson();
 	bool isValidJson(const char *_s) const;
-	void setInMap(std::string const &_s);
+	void * setInMap(std::string const &_s, char const *key = nullptr);
 };
 
 
